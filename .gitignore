@@ -1,0 +1,4 @@
+node_modules/
+payments.db
+.env
+.qodo/

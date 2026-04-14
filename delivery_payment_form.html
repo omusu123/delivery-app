@@ -1,0 +1,225 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.wrap { max-width: 480px; margin: 0 auto; padding: 2rem 1rem; }
+.logo { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; }
+.logo-icon { width: 40px; height: 40px; background: #c0392b; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 500; font-size: 16px; }
+.logo-text { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.logo-sub { font-size: 12px; color: var(--color-text-secondary); }
+.steps { display: flex; align-items: center; gap: 0; margin-bottom: 2rem; }
+.step { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+.step.done .step-num { background: #2ecc71; color: #fff; }
+.step.active .step-num { background: #c0392b; color: #fff; }
+.step.idle .step-num { background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-secondary); }
+.step.active .step-label { color: var(--color-text-primary); font-weight: 500; }
+.step.idle .step-label { color: var(--color-text-secondary); }
+.step.done .step-label { color: var(--color-text-secondary); }
+.step-line { flex: 1; height: 1px; background: var(--color-border-tertiary); margin: 0 6px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; margin-bottom: 1rem; }
+.card h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.card p { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.25rem; }
+label { display: block; font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; margin-top: 14px; }
+label:first-of-type { margin-top: 0; }
+input[type=text], input[type=email], input[type=tel] { width: 100%; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 14px; background: var(--color-background-primary); color: var(--color-text-primary); outline: none; }
+input:focus { border-color: #c0392b; box-shadow: 0 0 0 2px rgba(192,57,43,0.12); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btn { width: 100%; padding: 12px; background: #c0392b; color: #fff; border: none; border-radius: var(--border-radius-md); font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 1.25rem; }
+.btn:hover { background: #a93226; }
+.btn:disabled { background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: not-allowed; }
+.fee-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 14px; }
+.fee-total { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; font-size: 16px; font-weight: 500; }
+.tag { font-size: 11px; background: #fdecea; color: #c0392b; padding: 2px 8px; border-radius: 20px; }
+.mpesa { display: flex; align-items: center; gap: 10px; padding: 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; margin-top: 10px; }
+.mpesa.selected { border-color: #c0392b; background: #fdecea; }
+.mpesa-logo { width: 36px; height: 22px; background: #00a651; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 500; color: #fff; }
+.mpesa-label { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.mpesa-sub { font-size: 11px; color: var(--color-text-secondary); }
+.success { text-align: center; padding: 2rem 1rem; }
+.success-icon { width: 56px; height: 56px; background: #eafaf1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 24px; color: #2ecc71; }
+.page { display: none; }
+.page.active { display: block; }
+.err { font-size: 12px; color: #c0392b; margin-top: 4px; display: none; }
+</style>
+
+<div class="wrap">
+  <div class="logo">
+    <div class="logo-icon">SP</div>
+    <div>
+      <div class="logo-text">SwiftParcel</div>
+      <div class="logo-sub">Delivery Services</div>
+    </div>
+  </div>
+
+  <div class="steps" id="steps">
+    <div class="step active" id="s1"><div class="step-num">1</div><div class="step-label">Details</div></div>
+    <div class="step-line"></div>
+    <div class="step idle" id="s2"><div class="step-num">2</div><div class="step-label">Address</div></div>
+    <div class="step-line"></div>
+    <div class="step idle" id="s3"><div class="step-num">3</div><div class="step-label">Payment</div></div>
+  </div>
+
+  <!-- Step 1: Contact -->
+  <div class="page active" id="page1">
+    <div class="card">
+      <h2>Your details</h2>
+      <p>Enter your contact information for the delivery</p>
+      <label>Full name</label>
+      <input type="text" id="name" placeholder="e.g. Amara Odhiambo">
+      <div class="err" id="err-name">Please enter your name</div>
+      <label>Email address</label>
+      <input type="email" id="email" placeholder="you@example.com">
+      <div class="err" id="err-email">Please enter a valid email</div>
+      <label>Phone number</label>
+      <input type="tel" id="phone" placeholder="07XX XXX XXX">
+      <div class="err" id="err-phone">Please enter a valid phone number</div>
+    </div>
+    <button class="btn" onclick="goStep2()">Continue</button>
+  </div>
+
+  <!-- Step 2: Address -->
+  <div class="page" id="page2">
+    <div class="card">
+      <h2>Delivery address</h2>
+      <p>Where should we deliver your package?</p>
+      <label>Street / estate</label>
+      <input type="text" id="street" placeholder="e.g. Oginga Odinga Street">
+      <div class="err" id="err-street">Please enter an address</div>
+      <label>Town / city</label>
+      <input type="text" id="city" placeholder="e.g. Kisumu">
+      <div class="err" id="err-city">Please enter a city</div>
+      <div class="row2">
+        <div>
+          <label>County / region</label>
+          <input type="text" id="county" placeholder="e.g. Nyanza">
+        </div>
+        <div>
+          <label>Postal code</label>
+          <input type="text" id="postal" placeholder="e.g. 40100">
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="goStep3()">Continue</button>
+  </div>
+
+  <!-- Step 3: Payment -->
+  <div class="page" id="page3">
+    <div class="card">
+      <h2>Order summary</h2>
+      <p>Review before paying</p>
+      <div class="fee-row"><span>Delivery fee</span><span>KES 40.00</span></div>
+      <div class="fee-row"><span>Service charge</span><span>KES 7.00</span></div>
+      <div class="fee-total"><span>Total</span><span>KES 47.00</span></div>
+    </div>
+    <div class="card">
+      <h2>Pay with</h2>
+      <p>Choose a payment method</p>
+      <div class="mpesa selected" id="mpesa-opt">
+        <div class="mpesa-logo">M</div>
+        <div>
+          <div class="mpesa-label">M-Pesa</div>
+          <div class="mpesa-sub">Pay via STK push to your phone</div>
+        </div>
+      </div>
+      <label style="margin-top:14px;">M-Pesa phone number</label>
+      <input type="tel" id="mpesa-num" placeholder="07XX XXX XXX">
+      <div class="err" id="err-mpesa">Please enter your M-Pesa number</div>
+    </div>
+    <button class="btn" onclick="submitPayment()">Pay KES 47.00</button>
+  </div>
+
+  <!-- Success -->
+  <div class="page" id="page4">
+    <div class="success">
+      <div class="success-icon">✓</div>
+      <h2 style="font-size:18px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px;">Payment received</h2>
+      <p style="font-size:14px;color:var(--color-text-secondary);margin-bottom:1.5rem;">KES 47.00 charged via M-Pesa. A confirmation SMS has been sent to your number.</p>
+      <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;text-align:left;font-size:13px;">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:var(--color-text-secondary);">Ref</span><span id="ref-num" style="color:var(--color-text-primary);font-weight:500;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:var(--color-text-secondary);">Name</span><span id="conf-name" style="color:var(--color-text-primary);"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:var(--color-text-secondary);">Delivery to</span><span id="conf-city" style="color:var(--color-text-primary);"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showErr(id, show) {
+  document.getElementById(id).style.display = show ? 'block' : 'none';
+}
+function val(id) { return document.getElementById(id).value.trim(); }
+
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const s = document.getElementById('s'+i);
+    s.className = 'step ' + (i < n ? 'done' : i === n ? 'active' : 'idle');
+    document.getElementById('page'+i).className = 'page' + (i === n ? ' active' : '');
+  });
+}
+
+function goStep2() {
+  let ok = true;
+  if (!val('name')) { showErr('err-name', true); ok = false; } else showErr('err-name', false);
+  if (!val('email') || !val('email').includes('@')) { showErr('err-email', true); ok = false; } else showErr('err-email', false);
+  if (!val('phone') || val('phone').length < 9) { showErr('err-phone', true); ok = false; } else showErr('err-phone', false);
+  if (ok) setStep(2);
+}
+
+function goStep3() {
+  let ok = true;
+  if (!val('street')) { showErr('err-street', true); ok = false; } else showErr('err-street', false);
+  if (!val('city')) { showErr('err-city', true); ok = false; } else showErr('err-city', false);
+  if (ok) setStep(3);
+}
+
+function submitPayment() {
+  if (!val('mpesa-num') || val('mpesa-num').length < 9) { showErr('err-mpesa', true); return; }
+  showErr('err-mpesa', false);
+  const btn = document.querySelector('#page3 .btn');
+  btn.textContent = 'Processing...';
+  btn.disabled = true;
+  const payload = {
+    name: val('name'),
+    email: val('email'),
+    phone: val('phone'),
+    street: val('street'),
+    city: val('city'),
+    county: val('county'),
+    postal: val('postal'),
+    mpesaNumber: val('mpesa-num')
+  };
+
+  fetch('/api/pay', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('page3').innerHTML = `
+        <div class="success" style="padding-top:4rem;">
+          <h2 style="font-size:22px; margin-bottom: 12px; color: #c0392b;">Check Your Phone!</h2>
+          <p style="color: var(--color-text-secondary); margin-bottom: 2rem;">An M-Pesa STK push has been sent to ${val('mpesa-num')}. Please enter your M-Pesa PIN to authorize the payment.</p>
+          <div style="font-size:12px; border:1px solid #eee; padding:10px; border-radius:8px;">
+            <p style="margin-bottom:6px; color:#555;">Requested by: <b>SwiftParcel</b></p>
+            <p style="margin-bottom:6px; color:#555;">Request ID: <b>${data.checkoutRequestId}</b></p>
+            <p style="font-size: 11px; margin-top:12px; color: #999;">When you deploy this to Vercel, the Safaricom callback will automatically update your database!</p>
+          </div>
+        </div>
+      `;
+    } else {
+      alert('Payment failed: ' + (data.error || 'Unknown error'));
+      btn.textContent = 'Pay KES 47.00';
+      btn.disabled = false;
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Network error while processing payment.');
+    btn.textContent = 'Pay KES 47.00';
+    btn.disabled = false;
+  });
+}
+</script>
