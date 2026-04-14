@@ -1,9 +1,7 @@
 require('dotenv').config();
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
 const axios = require('axios');
 
 const app = express();
@@ -12,29 +10,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
-
-// Initialize SQLite database
-const db = new sqlite3.Database('./payments.db', (err) => {
-    if (err) {
-        console.error('Error opening database', err.message);
-    } else {
-        db.run(`CREATE TABLE IF NOT EXISTS payments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT,
-            phone TEXT,
-            street TEXT,
-            city TEXT,
-            county TEXT,
-            postal TEXT,
-            mpesaNumber TEXT,
-            reference TEXT,
-            amount DECIMAL(10,2),
-            status TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
-    }
-});
 
 // Daraja Credentials
 // These will automatically pull from Vercel's Environment Variables when deployed,
@@ -119,21 +94,12 @@ app.post('/api/pay', generateToken, async (req, res) => {
         const checkoutRequestId = response.data.CheckoutRequestID;
         console.log(`STK Push Request ID: ${checkoutRequestId}`);
         
-        // Save initial pending state to SQLite
-        db.run(
-            `INSERT INTO payments (name, email, phone, street, city, county, postal, mpesaNumber, reference, amount, status) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [name, email, phone, street, city, county, postal, mpesaNumber, checkoutRequestId, amount, 'Pending'],
-            function(err) {
-                if (err) console.error("Database insert error:", err.message);
-                
-                res.json({
-                    success: true,
-                    checkoutRequestId: checkoutRequestId,
-                    message: "STK Push sent successfully."
-                });
-            }
-        );
+        // Removed SQLite: Safely respond logic immediately.
+        res.json({
+            success: true,
+            checkoutRequestId: checkoutRequestId,
+            message: "STK Push sent successfully."
+        });
 
     } catch (error) {
         console.error("STK Push error details:", error.response?.data || error.message);
@@ -143,7 +109,7 @@ app.post('/api/pay', generateToken, async (req, res) => {
 
 // Safaricom Webhook Callback Endpoint
 app.post('/api/callback', (req, res) => {
-    console.log('\n--- SARAJA CALLBACK RECEIVED ---');
+    console.log('\n--- SAFARICOM CALLBACK RECEIVED ---');
     console.log(JSON.stringify(req.body, null, 2));
 
     try {
@@ -155,26 +121,14 @@ app.post('/api/callback', (req, res) => {
             // Payment successful
             const metadata = body.CallbackMetadata.Item;
             const receiptNumber = metadata.find(item => item.Name === 'MpesaReceiptNumber')?.Value;
+            console.log(`SUCCESS! Received Payment for Request ${checkoutRequestId}. Receipt: ${receiptNumber}`);
             
-            db.run(
-                `UPDATE payments SET status = ?, reference = ? WHERE reference = ?`,
-                ['Completed', receiptNumber, checkoutRequestId],
-                (err) => {
-                    if (err) console.error("Database callback update error:", err.message);
-                    else console.log(`Payment updated successfully. Receipt: ${receiptNumber}`);
-                }
-            );
+            // Note: Since SQLite is removed, we only log it here.
+            // When you implement a cloud DB, you will update your database here.
         } else {
-            // Payment failed (user cancelled, insufficient funds, etc.)
+            // Payment failed
             const reason = body.ResultDesc;
-            db.run(
-                `UPDATE payments SET status = ? WHERE reference = ?`,
-                ['Failed: ' + reason, checkoutRequestId],
-                (err) => {
-                    if (err) console.error("Database callback update error:", err.message);
-                    else console.log(`Payment marked failed. Reason: ${reason}`);
-                }
-            );
+            console.log(`FAILED Payment for Request ${checkoutRequestId}. Reason: ${reason}`);
         }
     } catch(err) {
         console.error("Error parsing callback payload:", err);
@@ -184,6 +138,10 @@ app.post('/api/callback', (req, res) => {
     res.json({ ResultCode: 0, ResultDesc: "Success" });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+// Export the Express app for Vercel Serverless Functions
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+}
+module.exports = app;
