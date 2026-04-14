@@ -56,7 +56,7 @@ app.post('/api/pay', generateToken, async (req, res) => {
         return res.status(400).json({ error: 'Name and M-Pesa number are required' });
     }
 
-    const amount = '1'; // Use 1 KES for testing limits in sandbox
+    const amount = '47'; // Matching the 47 KES from the frontend
     const formattedPhone = formatPhoneNumber(mpesaNumber);
     const date = new Date();
     
