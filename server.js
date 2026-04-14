@@ -44,9 +44,9 @@ const consumerSecret = process.env.DARAJA_CONSUMER_SECRET || 'BI1NYT5moUa8GdZJrU
 const passkey = process.env.DARAJA_PASSKEY || 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
 const shortcode = process.env.DARAJA_SHORTCODE || '174379';
 
-// Placeholder Callback URL
-// On Vercel, set the environment variable DARAJA_CALLBACK_URL to https://your-app-domain.vercel.app/api/callback
-const callbackURL = process.env.DARAJA_CALLBACK_URL || 'https://mydomain.com/api/callback';
+// Safaricom Callback URL (Your deployed Vercel URL)
+// This strictly points to the /api/callback route to receive STK Push confirmations
+const callbackURL = process.env.DARAJA_CALLBACK_URL || 'https://delivery-app-pi-three.vercel.app/api/callback';
 
 // Middleware to get the Daraja Access Token
 const generateToken = async (req, res, next) => {
