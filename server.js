@@ -1,3 +1,5 @@
+require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -34,15 +36,17 @@ const db = new sqlite3.Database('./payments.db', (err) => {
     }
 });
 
-// Daraja Credentials (Sandbox)
-const consumerKey = 'AxLj1Gt7TKrkhKn2vtppu9T4DLugjVjqhA9CMuivVfTDRozu';
-const consumerSecret = 'BI1NYT5moUa8GdZJrUxVtfm2clYEuEjNw22fPwtT5PCN7Ke89ol4sRrYlpeqa5BW';
-const passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
-const shortcode = '174379';
+// Daraja Credentials
+// These will automatically pull from Vercel's Environment Variables when deployed,
+// but fall back to the strings below for your local computer testing.
+const consumerKey = process.env.DARAJA_CONSUMER_KEY || 'AxLj1Gt7TKrkhKn2vtppu9T4DLugjVjqhA9CMuivVfTDRozu';
+const consumerSecret = process.env.DARAJA_CONSUMER_SECRET || 'BI1NYT5moUa8GdZJrUxVtfm2clYEuEjNw22fPwtT5PCN7Ke89ol4sRrYlpeqa5BW';
+const passkey = process.env.DARAJA_PASSKEY || 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
+const shortcode = process.env.DARAJA_SHORTCODE || '174379';
 
 // Placeholder Callback URL
-// IMPORTANT: Update this with your actual Vercel domain once deployed (e.g., https://your-vercel-domain.vercel.app/api/callback)
-const callbackURL = 'https://mydomain.com/api/callback';
+// On Vercel, set the environment variable DARAJA_CALLBACK_URL to https://your-app-domain.vercel.app/api/callback
+const callbackURL = process.env.DARAJA_CALLBACK_URL || 'https://mydomain.com/api/callback';
 
 // Middleware to get the Daraja Access Token
 const generateToken = async (req, res, next) => {
