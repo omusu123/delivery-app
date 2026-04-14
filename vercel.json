@@ -4,12 +4,20 @@
     {
       "src": "server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
     }
   ],
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/server.js"
+    },
+    {
+      "source": "/",
+      "destination": "/delivery_payment_form.html"
     }
   ]
 }
