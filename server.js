@@ -83,8 +83,8 @@ app.post('/api/pay', generateToken, async (req, res) => {
                 PartyB: shortcode,
                 PhoneNumber: formattedPhone,
                 CallBackURL: callbackURL,
-                AccountReference: 'SwiftParcel',
-                TransactionDesc: 'Delivery Payment'
+                AccountReference: 'PostaKenya',
+                TransactionDesc: 'Posta Kenya Delivery Payment'
             },
             {
                 headers: { Authorization: `Bearer ${req.safaricom_access_token}` }
@@ -139,7 +139,7 @@ app.post('/api/callback', (req, res) => {
 });
 
 // Export the Express app for Vercel Serverless Functions
-if (process.env.NODE_ENV !== 'production') {
+if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Server running at http://localhost:${PORT}`);
     });

