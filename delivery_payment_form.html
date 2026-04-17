@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Posta Kenya | Secure Checkout</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3"></script>
 <style>
 :root {
   --primary: #d71920;        /* Posta Kenya red */
@@ -122,20 +123,19 @@ input::placeholder { color: #9ca3af; }
 .fee-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-muted); }
 .fee-total { display: flex; justify-content: space-between; padding: 16px 0 0; font-size: 18px; font-weight: 600; color: var(--text-main); }
 
-.mpesa { 
-  display: flex; align-items: center; gap: 12px; padding: 16px; 
-  border: 2px solid var(--primary); border-radius: 12px; cursor: pointer; 
-  margin-top: 12px; background: rgba(231, 76, 60, 0.04);
-}
-.mpesa-logo { 
-  width: 44px; height: 28px; background: #00a651; border-radius: 6px; 
-  display: flex; align-items: center; justify-content: center; 
-  font-size: 10px; font-weight: 700; color: #fff; letter-spacing: 0.5px;
-}
-.mpesa-label { font-size: 14px; font-weight: 600; }
-.mpesa-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
 .err { font-size: 12px; color: var(--primary); margin-top: 6px; display: none; font-weight: 500; }
+
+.stripe-wrap { margin-top: 12px; }
+.stripe-el {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: var(--bg-main);
+  transition: all 0.2s ease;
+}
+.stripe-el.is-focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(215, 25, 32, 0.12); background: #fff; }
+.hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
 
 @media (max-width: 767px) {
   .hero-section { border-radius: 0 0 24px 24px; padding: 2rem 1.5rem; }
@@ -154,13 +154,11 @@ input::placeholder { color: #9ca3af; }
   <div class="hero-section">
     <div class="logo-wrap">
       <div class="logo-icon" aria-label="Posta Kenya">
-        <svg viewBox="0 0 96 96" width="56" height="56" role="img" aria-label="Posta Kenya logo">
-          <rect x="0" y="0" width="96" height="56" rx="14" fill="rgba(255,255,255,0.16)"/>
-          <rect x="6" y="6" width="84" height="32" rx="10" fill="white" opacity="0.92"/>
-          <rect x="6" y="44" width="84" height="18" rx="9" fill="white" opacity="0.22"/>
-          <text x="48" y="29" text-anchor="middle" font-size="18" font-weight="800" fill="var(--primary)" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif">POSTA</text>
-          <text x="48" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="white" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" opacity="0.95">KENYA</text>
-        </svg>
+        <img
+          alt="Posta Kenya"
+          src="/assets/posta-kenya-logo.png"
+          style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;"
+        />
       </div>
       <div>
         <div style="font-size: 20px; font-weight: 700;">Posta Kenya</div>
@@ -174,7 +172,7 @@ input::placeholder { color: #9ca3af; }
     </div>
     
     <div class="hero-footer">
-      Secured by Safaricom M-Pesa.
+      Secure card payments.
     </div>
   </div>
 
@@ -248,21 +246,18 @@ input::placeholder { color: #9ca3af; }
       </div>
       
       <div class="card" style="margin-top: 1.5rem;">
-        <h2>Payment method</h2>
-        <div class="mpesa selected" id="mpesa-opt">
-          <div class="mpesa-logo">M-PESA</div>
-          <div>
-            <div class="mpesa-label">Pay via M-Pesa</div>
-            <div class="mpesa-sub">Direct STK push to your handset</div>
-          </div>
+        <h2>Pay by card</h2>
+        <p style="margin-top:-10px; color: var(--text-muted); font-size: 13px;">Visa, Mastercard & supported cards</p>
+
+        <div class="stripe-wrap">
+          <label style="margin-top:18px;">Card details</label>
+          <div id="card-element" class="stripe-el"></div>
+          <div class="err" id="err-card">Please check your card details</div>
+          <div class="hint" id="stripe-hint">Your card details are securely processed by Stripe.</div>
         </div>
-        
-        <label style="margin-top:20px;">M-Pesa phone number</label>
-        <input type="tel" id="mpesa-num" placeholder="07XX XXX XXX" style="font-size: 16px; font-weight: 500; letter-spacing: 1px;">
-        <div class="err" id="err-mpesa">Please enter your M-Pesa number</div>
       </div>
       
-      <button class="btn" onclick="submitPayment()">Pay KES 47.00 Securely</button>
+      <button class="btn" id="payBtn" onclick="submitPayment()">Pay KES 47.00 Securely</button>
     </div>
     
   </div>
@@ -298,57 +293,105 @@ function goStep3() {
 }
 
 function submitPayment() {
-  if (!val('mpesa-num') || val('mpesa-num').length < 9) { showErr('err-mpesa', true); return; }
-  showErr('err-mpesa', false);
-  
-  const btn = document.querySelector('#page3 .btn');
+  showErr('err-card', false);
+
+  if (!window.__postaStripe || !window.__postaStripe.card) {
+    alert('Card payments are not configured yet. Please set Stripe keys on the server.');
+    return;
+  }
+
+  const btn = document.getElementById('payBtn');
   btn.innerHTML = '<span style="opacity: 0.8;">Processing Securely...</span>';
   btn.disabled = true;
-  
-  const payload = {
-    name: val('name'),
-    email: val('email'),
-    phone: val('phone'),
-    street: val('street'),
-    city: val('city'),
-    county: val('county'),
-    postal: val('postal'),
-    mpesaNumber: val('mpesa-num')
-  };
 
-  fetch('/api/pay', {
+  const amountKsh = 47;
+
+  fetch('/api/create-payment-intent', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ amountKsh })
   })
   .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      document.getElementById('page3').innerHTML = `
-        <div style="padding-top:2rem; text-align: center; animation: fadeIn 0.4s ease forwards;">
-          <div style="width: 64px; height: 64px; background: #eafaf1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 28px; color: var(--success); box-shadow: 0 10px 20px rgba(46, 204, 113, 0.2);">🤳</div>
-          <h2 style="font-size:24px; font-weight: 700; margin-bottom: 12px; color: var(--text-main);">Check Your Phone!</h2>
-          <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 15px; line-height: 1.6;">An M-Pesa STK push has been sent exclusively to <br><b style="color: var(--text-main); font-size: 16px;">${val('mpesa-num')}</b>. <br><br>Please enter your M-Pesa PIN on your mobile device to authorize and complete the payment.</p>
-          <div style="font-size:13px; border: 1.5px dashed var(--border); padding: 1rem; border-radius: 12px; background: var(--bg-main); text-align: left;">
-            <p style="margin-bottom:8px; color: var(--text-muted); display:flex; justify-content:space-between;"><span>Requested by:</span> <b style="color: var(--text-main);">Posta Kenya</b></p>
-            <p style="margin-bottom:0; color: var(--text-muted); display:flex; justify-content:space-between;"><span>Request ID:</span> <b style="color: var(--text-main); font-family: monospace;">${data.checkoutRequestId}</b></p>
-          </div>
-          <p style="font-size: 12px; margin-top:2rem; color: #9ca3af;">Awaiting Safaricom confirmation webhook...</p>
-        </div>
-      `;
-    } else {
-      alert('Payment failed: ' + (data.error || 'Unknown error'));
+  .then(async data => {
+    if (!data.clientSecret) throw new Error(data.error || 'Missing clientSecret');
+
+    const { stripe, card } = window.__postaStripe;
+    const result = await stripe.confirmCardPayment(data.clientSecret, {
+      payment_method: {
+        card,
+        billing_details: {
+          name: val('name') || undefined,
+          email: val('email') || undefined,
+          phone: val('phone') || undefined,
+          address: {
+            line1: val('street') || undefined,
+            city: val('city') || undefined,
+            state: val('county') || undefined,
+            postal_code: val('postal') || undefined
+          }
+        }
+      }
+    });
+
+    if (result.error) {
+      console.error(result.error);
+      showErr('err-card', true);
       btn.textContent = 'Pay KES 47.00 Securely';
       btn.disabled = false;
+      return;
     }
+
+    document.getElementById('page3').innerHTML = `
+      <div style="padding-top:2rem; text-align: center; animation: fadeIn 0.4s ease forwards;">
+        <div style="width: 64px; height: 64px; background: #eafaf1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 28px; color: var(--success); box-shadow: 0 10px 20px rgba(46, 204, 113, 0.2);">✓</div>
+        <h2 style="font-size:24px; font-weight: 700; margin-bottom: 12px; color: var(--text-main);">Payment successful</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 15px; line-height: 1.6;">Thank you. Your card payment has been authorized and your delivery will be processed.</p>
+        <div style="font-size:13px; border: 1.5px dashed var(--border); padding: 1rem; border-radius: 12px; background: var(--bg-main); text-align: left;">
+          <p style="margin-bottom:8px; color: var(--text-muted); display:flex; justify-content:space-between;"><span>Paid to:</span> <b style="color: var(--text-main);">Posta Kenya</b></p>
+          <p style="margin-bottom:0; color: var(--text-muted); display:flex; justify-content:space-between;"><span>Status:</span> <b style="color: var(--text-main); font-family: monospace;">${result.paymentIntent?.status || 'succeeded'}</b></p>
+        </div>
+      </div>
+    `;
   })
   .catch(err => {
     console.error(err);
-    alert('Network error while processing payment.');
+    alert('Payment error: ' + (err?.message || 'Unknown error'));
     btn.textContent = 'Pay KES 47.00 Securely';
     btn.disabled = false;
   });
 }
+
+// Stripe init (loads publishable key from server)
+(function initStripe() {
+  if (!window.Stripe) return;
+  fetch('/api/config')
+    .then(r => r.json())
+    .then(cfg => {
+      if (!cfg.publishableKey) {
+        const hint = document.getElementById('stripe-hint');
+        if (hint) {
+          hint.textContent = 'Card payments are not configured yet. Add STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY on the server.';
+        }
+        return;
+      }
+
+      const stripe = Stripe(cfg.publishableKey);
+      const elements = stripe.elements({ appearance: { theme: 'stripe' } });
+      const card = elements.create('card', { hidePostalCode: true });
+      card.mount('#card-element');
+
+      const el = document.getElementById('card-element');
+      card.on('focus', () => el.classList.add('is-focus'));
+      card.on('blur', () => el.classList.remove('is-focus'));
+      card.on('change', (e) => showErr('err-card', !!e.error));
+
+      window.__postaStripe = { stripe, card };
+    })
+    .catch(() => {
+      const hint = document.getElementById('stripe-hint');
+      if (hint) hint.textContent = 'Unable to load payment configuration.';
+    });
+})();
 </script>
 
 </body>
